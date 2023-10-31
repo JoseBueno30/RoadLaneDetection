@@ -17,8 +17,11 @@ def contr_img(img, s=1.0):  # Change image contrast; s>1 - increase
 
 class PerspectiveTransform:
     def __init__(self):
-        self.src = np.float32([[300, 450], [400, 680], [880, 680], [980, 450]])
-        self.dst = np.float32([[0, 0], [500, 720], [780, 720], [1280, 0]])
+        IMAGE_H = 720
+        IMAGE_W = 1280
+
+        self.src = np.float32([[280, IMAGE_H-30], [1000, IMAGE_H-30], [300, 470], [IMAGE_W-300, 470]])
+        self.dst = np.float32([[530, IMAGE_H], [760, IMAGE_H], [0, 0], [IMAGE_W, 0]])
 
         self.TransformationMatrix = cv2.getPerspectiveTransform(self.src, self.dst)
         self.TransformationMatrix_inv = cv2.getPerspectiveTransform(self.dst, self.src)
@@ -29,7 +32,8 @@ class PerspectiveTransform:
         y = img.shape[0]
         transformed_img = cv2.warpPerspective(transformed_img, self.TransformationMatrix, (x, y), cv2.INTER_LINEAR)
 
-        transformed_img = sharpen_img(transformed_img)
+        #transformed_img = sharpen_img(transformed_img)
+
         #transformed_img = contr_img(transformed_img, 1.1)
 
 

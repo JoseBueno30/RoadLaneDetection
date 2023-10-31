@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import math
 
 
 def histogram_equalization(img):
@@ -45,48 +44,34 @@ def gaussian_smoothing(image, sigma, w_kernel):
     return smoothed_norm
 
 def binarize(img):
+
     grayscale_binary = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     grayscale_binary = histogram_equalization(grayscale_binary)
     ret, grayscale_binary = cv2.threshold(grayscale_binary, 190, 255, cv2.THRESH_BINARY)
 
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+    img_lab[:, :, 0] = histogram_equalization(img_lab[:, :, 0])
     img_lab[:, :, 2] = histogram_equalization(img_lab[:, :, 2])
-    #img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    #img_hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
+    img_hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
+    img_hls[:, :, 1] = histogram_equalization(img_hls[:, :, 1])
 
-    binary_img = np.zeros_like(img_lab)
-    binary_img[(img_lab[:, :, 2] < 122) | (grayscale_binary > 1) ] = 255
-
-    img[(binary_img > 25)] = 255
-    return img
-
-def houghTransform(image):
-    # Convert to RGB and get gray image
-    #image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    #gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-
-    gray = np.copy(image)
-
-    # Blur the gray image
-    gray = gaussian_smoothing(gray, 2, 5)
+    binary_imge = np.zeros_like(grayscale_binary)
+    binary_imge[(img_lab[:, :, 2] < 122) | (grayscale_binary > 1) ] = 255
 
 
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 7))
+    black = cv2.morphologyEx(img_lab[:, :, 0], cv2.MORPH_TOPHAT, kernel)
+    lanes = cv2.morphologyEx(img_hls[:, :, 1], cv2.MORPH_TOPHAT, kernel)
 
-    # Apply Canny algorithm
-    edges = cv2.Canny(gray, 255, 255, apertureSize=3)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))
+    yellow = cv2.morphologyEx(binary_imge, cv2.MORPH_TOPHAT, kernel)
+
+    final_mask = np.zeros_like(img_lab)
+    final_mask[(black > 10) | (lanes > 10) | (yellow > 10)] = 255
+
+    small_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_ERODE, small_kernel, 10)
 
 
-    # Search for lines using Hough transform
-    rho = 1
-    theta = np.pi / 180
-    threshold = 150
-    lines = cv2.HoughLinesP(edges, rho, theta, threshold,
-                            minLineLength=40, maxLineGap=40)
-    # For each line
-    for line in lines:
-        # Draw the line in the RGB image
-        x1, y1, x2, y2 = line[0]
-        cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
-
-    # Show resultant image
-    return image
+    img[(final_mask > 25)] = 255
+    return final_mask, img

@@ -3,6 +3,7 @@ import cv2
 import matplotlib
 import matplotlib.pyplot as plt
 
+import LaneFinder
 import PerspectiveTransformation
 import PreProcessing
 
@@ -33,10 +34,13 @@ if __name__ == '__main__':
 
                 tframe = PreProcessing.histogram_equalization(tframe)
                 tframe = PerspectiveTransform.forward(tframe)
-                tframe = PreProcessing.binarize(tframe)
-                #tframe = PreProcessing.houghTransform(tframe)
+                tframe, out = PreProcessing.binarize(tframe)
 
-                tframe = PerspectiveTransform.backward(tframe)
+                #print(LaneFinder.getStartingPoints(tframe))
+                leftx, rightx = LaneFinder.getStartingPoints(tframe)
+                cv2.line(out, (rightx, 720), (rightx, 0),(0, 0, 255), 5)
+                cv2.line(out, (leftx, 0), (leftx, 720), (0, 255, 0), 5)
+                tframe = PerspectiveTransform.backward(out)
 
 
                 i=0;
