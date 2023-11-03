@@ -15,8 +15,8 @@ def getStartingPoints(line_mask):
 def findLane(lane_image, starting_point):
     nwindows = 20
     window_height = int(lane_image.shape[0]/nwindows)
-    window_width = 20
-    minpixel = 40
+    window_width = 60
+    minpixel = 10
 
     nonzero = lane_image.nonzero()
     nonzerox = np.array(nonzero[1])
@@ -65,4 +65,4 @@ def findLane(lane_image, starting_point):
 
     frame = cv2.polylines(lane_image, np.int_([pts_left]), False, (0, 255, 255), 5)
 
-    return frame
+    return pts_left, frame

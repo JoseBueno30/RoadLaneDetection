@@ -24,11 +24,14 @@ if __name__ == '__main__':
 
 
     i=0
+    left_line = None
+    right_line = None
 
     while video.isOpened():
         ret, frame = video.read()
         if ret:
             tframe = np.copy(frame)
+
 
             if i == 0:
 
@@ -39,10 +42,13 @@ if __name__ == '__main__':
                 left_starting_point, right_starting_point = LaneFinder.getStartingPoints(tframe)
 
                 midpoint = int(tframe.shape[1] / 2)
-                left_line = LaneFinder.findLane(tframe, left_starting_point)
-                right_line = LaneFinder.findLane(tframe, right_starting_point)
+                left_line, tframe = LaneFinder.findLane(tframe, left_starting_point)
+                right_line, tframe = LaneFinder.findLane(tframe, right_starting_point)
+                tframe = PerspectiveTransform.backward(tframe)
 
-                ploty = np.linspace(0, tframe.shape[0] - 1, tframe.shape[0])
+                frame = cv2.addWeighted(frame, 1, tframe, 0.5, 0)
+
+                #ploty = np.linspace(0, tframe.shape[0] - 1, tframe.shape[0])
 
                 #pts_left = np.array([np.transpose(np.vstack([left_line, ploty]))])
                 #pts_left = np.hstack((pts_left))
@@ -51,17 +57,24 @@ if __name__ == '__main__':
                 #pts_right = np.hstack((pts_right))
 
                 #frame = PerspectiveTransform.forward(gr)
-                #frame = cv2.polylines(frame, np.int_([pts_left]), False, (0, 255, 255), 5)
-                #frame = cv2.polylines(frame, np.int_([pts_right]), False, (0, 255, 255), 5)
 
-                #tframe = PerspectiveTransform.backward(frame)
 
 
                 i=0;
             else:
                 i+=1;
 
-            cv2.imshow('tFrame', tframe)
+
+            lane_img = np.zeros_like(frame)
+
+
+            lane_img = cv2.polylines(lane_img, np.int_([left_line]), False, (0, 255, 0), 3)
+            lane_img = cv2.polylines(lane_img, np.int_([right_line]), False, (0, 255, 0), 3)
+            lane_img = PerspectiveTransform.backward(lane_img)
+
+            #frame = cv2.addWeighted(frame, 1, lane_img, 0.5, 0)
+
+            cv2.imshow('tFrame', frame)
 
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
