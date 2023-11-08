@@ -45,9 +45,12 @@ def gaussian_smoothing(image, sigma, w_kernel):
 
 def binarize(img):
 
-    grayscale_binary = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    grayscale_binary = histogram_equalization(grayscale_binary)
-    ret, grayscale_binary = cv2.threshold(grayscale_binary, 190, 255, cv2.THRESH_BINARY)
+    binary = cv2.convertScaleAbs(img, alpha=1.1, beta=-80)
+    binary = cv2.cvtColor(binary, cv2.COLOR_RGB2HSV)
+    binary[:, :, 1] = np.zeros_like(binary[:, :, 1])
+    binary = cv2.cvtColor(binary, cv2.COLOR_HSV2RGB)
+
+    ret, binary = cv2.threshold(binary[:,:,0], int(cv2.mean(binary[:,:,0])[0])+45, 255, cv2.THRESH_BINARY)
 
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
     img_lab[:, :, 0] = histogram_equalization(img_lab[:, :, 0])
@@ -55,8 +58,8 @@ def binarize(img):
     img_hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
     img_hls[:, :, 1] = histogram_equalization(img_hls[:, :, 1])
 
-    binary_imge = np.zeros_like(grayscale_binary)
-    binary_imge[(img_lab[:, :, 2] < 122) | (grayscale_binary > 1) ] = 255
+    binary_img = np.zeros_like(binary)
+    binary_img[(img_lab[:, :, 2] < 115) | (binary > 1) ] = 255
 
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 7))
@@ -64,14 +67,18 @@ def binarize(img):
     lanes = cv2.morphologyEx(img_hls[:, :, 1], cv2.MORPH_TOPHAT, kernel)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))
-    yellow = cv2.morphologyEx(binary_imge, cv2.MORPH_TOPHAT, kernel)
+    yellow = cv2.morphologyEx(binary_img, cv2.MORPH_TOPHAT, kernel)
 
-    final_mask = np.zeros_like(img_lab)
-    final_mask[(black > 10) | (lanes > 10) | (yellow > 10)] = 255
+    #lanes = np.zeros_like(lanes)
+    #black = np.zeros_like(black)
+    #yellow = np.zeros_like(yellow)
+    final_mask = np.zeros_like(img)
+    final_mask[(lanes > 20) | (yellow>10) | (black>10)] = 255
 
     small_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_ERODE, small_kernel, 10)
 
+    small_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 35))
+    final_mask = cv2.morphologyEx(binary_img, cv2.MORPH_DILATE, small_kernel)
 
-    img[(final_mask > 25)] = 255
-    return final_mask, img
+    return final_mask

@@ -20,7 +20,7 @@ class PerspectiveTransform:
         IMAGE_H = 720
         IMAGE_W = 1280
 
-        self.src = np.float32([[280, IMAGE_H-30], [1000, IMAGE_H-30], [300, 470], [IMAGE_W-300, 470]])
+        self.src = np.float32([[280, IMAGE_H-55], [1000, IMAGE_H-55], [300, 470], [IMAGE_W-300, 470]])
         self.dst = np.float32([[530, IMAGE_H], [760, IMAGE_H], [0, 0], [IMAGE_W, 0]])
 
         self.TransformationMatrix = cv2.getPerspectiveTransform(self.src, self.dst)

@@ -21,30 +21,35 @@ if __name__ == '__main__':
     ret, initial_frame = video.read()
     cv2.imshow('tFrame', initial_frame)
     initial_frame = PerspectiveTransform.forward(initial_frame)
-    tframe, out = PreProcessing.binarize(initial_frame)
+    tframe = PreProcessing.binarize(initial_frame)
 
     left_starting_point, right_starting_point = LaneFinder.getStartingPoints(initial_frame)
 
-    i=0
+    i=1
+    left_line = None
+    right_line = None
+    road = None
 
     while video.isOpened():
         ret, frame = video.read()
         if ret:
             tframe = np.copy(frame)
-            if i == 0:
+            if i == 1:
 
 
                 tframe = PerspectiveTransform.forward(tframe)
 
                 left_line, tframe = LaneFinder.findLane(tframe, left_starting_point)
                 right_line, tframe = LaneFinder.findLane(tframe, right_starting_point)
+                road = np.hstack(([left_line], [np.flipud(right_line)]))
 
+                # tframe = PreProcessing.histogram_equalization(tframe)
+                # tframe = PreProcessing.binarize(tframe)
 
-                frame = PerspectiveTransform.backward(tframe)
-                #frame = frame[int(600):int(720), int(100):int(400), :]
+                # tframe = PerspectiveTransform.backward(tframe)
+
+                #tframe = cv2.addWeighted(frame, 1, tframe, 0.5, 0)
                 #frame = tframe
-
-                #frame = cv2.addWeighted(frame, 1, tframe, 0.5, 0)
 
                 #ploty = np.linspace(0, tframe.shape[0] - 1, tframe.shape[0])
 
@@ -66,11 +71,15 @@ if __name__ == '__main__':
             lane_img = np.zeros_like(frame)
 
 
-            #lane_img = cv2.polylines(lane_img, np.int_([left_line]), False, (0, 255, 0), 3)
-            #lane_img = cv2.polylines(lane_img, np.int_([right_line]), False, (0, 255, 0), 3)
-            #lane_img = PerspectiveTransform.backward(lane_img)
 
-            #frame = cv2.addWeighted(frame, 1, lane_img, 0.5, 0)
+            lane_img = cv2.polylines(lane_img, [left_line], False, (255, 0, 255), 3)
+            lane_img = cv2.polylines(lane_img, [right_line], False, (255, 0, 255), 3)
+
+            # Draw the lane onto the warped blank image
+            cv2.fillPoly(lane_img, np.int_([road]), (255, 0, 0))
+            lane_img = PerspectiveTransform.backward(lane_img)
+
+            frame = cv2.addWeighted(frame, 1, lane_img, 0.5, 0)
 
             cv2.imshow('tFrame', frame)
 
