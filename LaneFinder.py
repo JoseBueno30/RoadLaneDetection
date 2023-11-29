@@ -18,7 +18,7 @@ def getStartingPoints(line_mask):
 def findLane(lane_image, starting_point):
     nwindows = 10
     window_height = int(lane_image.shape[0]/nwindows)
-    window_width = 120
+    window_width = 110
     minpixel = 750
 
 
@@ -41,7 +41,7 @@ def findLane(lane_image, starting_point):
         nonzerox = np.array(nonzero[1]) + int(win_left)
         nonzeroy = np.array(nonzero[0]) + int(win_top)
 
-        #lane_image[int(win_top):int(win_bottom), int(win_left):int(win_right), :] = processed_image
+        lane_image[int(win_top):int(win_bottom), int(win_left):int(win_right), :] = processed_image
         #cv2.rectangle(lane_image, (int(win_left), int(win_bottom)), (int(win_right), int(win_top)), (0, 255, 0), 1)
 
         lane_pixels_x.append(nonzerox)
@@ -61,15 +61,38 @@ def findLane(lane_image, starting_point):
     if len(lane_pixels_x) != 0:
         lane_fit = np.polyfit(lane_pixels_y, lane_pixels_x, 2)
 
-    #lane_image[lane_pixels_y, lane_pixels_x] = [255, 0, 0]
-
-    #lane_image[lane_pixels_y, lane_pixels_x] = [255, 0, 0]
+    return lane_fit, lane_image;
 
 
+def findRoadLane(img, starting_point, current_lane, current_curvature, counter):
+    lane_fit, lane_image = findLane(img, starting_point)
+    lane =[]
     ploty = np.linspace(144, lane_image.shape[0] - 1, lane_image.shape[0])
+    curvature = getCurvature(lane_fit, ploty)
+    print("CURVATURE: ", curvature)
+    print("CURR_CUR: ", current_curvature)
+    if(current_curvature != None):
+        print(np.absolute((current_curvature / curvature) - 1))
 
-    lane_fit = lane_fit[0] * ploty ** 2 + lane_fit[1] * ploty + lane_fit[2]
-    pts = np.array([np.transpose(np.vstack([lane_fit, ploty]))])
-    pts = np.hstack(np.int_(pts))
+    #CHECK IF CURVATURE IS SIMILAR TO LAST FRAME, IF NOT, USE LAST FRAME FIT
+    if (current_curvature == None) or (np.absolute((current_curvature / curvature) - 1) < 0.6) or (counter > 15):
+        print("---------------------CAMBIA-------------------")
+        counter = 0
+        lane = lane_fit[0] * ploty ** 2 + lane_fit[1] * ploty + lane_fit[2]
+        lane = np.array([np.transpose(np.vstack([lane, ploty]))])
+        lane = np.hstack(np.int_(lane))
+    else:
+        counter+=1
+        curvature = current_curvature
+        lane = current_lane
 
-    return pts, lane_image
+    return lane, lane_image, curvature, counter;
+
+
+def getCurvature(poly, ploty):
+    y = ploty[719]
+    curvature = 1;
+    if len(poly) > 0:
+        curvature = ((1 + (2*poly[0]*y + poly[1])**2)**1.5) / np.absolute(2 * poly[0])
+    print("----------------- ",curvature)
+    return curvature;
