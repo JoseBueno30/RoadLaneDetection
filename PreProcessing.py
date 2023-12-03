@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from numba import jit, cuda
 
 
 def histogram_equalization(img):
@@ -42,6 +43,7 @@ def gaussian_smoothing(image, sigma, w_kernel):
     smoothed_norm = cv2.normalize(smoothed_img, None, 0, 255, cv2.NORM_MINMAX)
 
     return smoothed_norm
+
 
 def binarize(img):
 

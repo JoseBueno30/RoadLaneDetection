@@ -12,7 +12,7 @@ import PreProcessing
 if __name__ == '__main__':
     UNWARPED_SIZE = (1280, 720)
     WARPED_SIZE = (600, 500)
-    video = cv2.VideoCapture('video/challenge_video.mp4')
+    video = cv2.VideoCapture('video/project_video.mp4')
     image = cv2.imread('video/frame134.jpg', -1)
     PerspectiveTransform = PerspectiveTransformation.PerspectiveTransform()
 
@@ -44,10 +44,10 @@ if __name__ == '__main__':
     while video.isOpened():
         ret, frame = video.read()
         if ret:
-            tframe = np.copy(frame)
+
             if i == 0:
                 start = time.time()
-                tframe = PerspectiveTransform.forward(tframe)
+                tframe = PerspectiveTransform.forward(frame)
 
                 left_line_thread = threading.Thread(target=left_line.find, args=(tframe,))
                 right_line_thread = threading.Thread(target=right_line.find, args=(tframe,))
@@ -67,14 +67,24 @@ if __name__ == '__main__':
 
             lane_img = np.zeros_like(frame)
 
-            lane_img = cv2.polylines(lane_img, [left_line.getFit()], False, (255, 0, 255), 3)
-            lane_img = cv2.polylines(lane_img, [right_line.getFit()], False, (255, 0, 255), 3)
+            lane_img = cv2.polylines(lane_img, [left_line.getFit()], False, (0, 155, 255), 10)
+            lane_img = cv2.polylines(lane_img, [right_line.getFit()], False, (0, 155, 255), 10)
 
-            # # Draw the lane onto the warped blank image
+            #print(left_line.getFit())
+
+            # Draw the lane onto the warped blank image
             #cv2.fillPoly(lane_img, np.int_([road]), (200, 0, 0))
             lane_img = PerspectiveTransform.backward(lane_img)
 
             frame = cv2.addWeighted(frame, 1, lane_img, 0.5, 0)
+
+            cv2.putText(frame, "Curvature = {:.0f} m".format(min(left_line.curvature, right_line.curvature)), org=(10, 200), fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale=2, color=(255,255,255), thickness=2)
+
+            pos = (1280//2 - (right_line.getFit()[0][0] + left_line.getFit()[0][0])//2) * 3.7/700
+
+            cv2.putText(frame, "POS = {:.2f} m".format(pos),
+                        org=(10, 50), fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale=2, color=(255, 255, 255),
+                        thickness=2)
 
             cv2.imshow('tFrame', frame)
 
