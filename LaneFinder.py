@@ -46,10 +46,7 @@ def findLane(lane_image, starting_point):
         lane_pixels_y.append(nonzeroy)
 
         if len(nonzerox) > minpixel:
-
             window_pos = int(np.mean(nonzerox))
-
-
 
     lane_pixels_x = np.concatenate(lane_pixels_x)
     lane_pixels_y = np.concatenate(lane_pixels_y)
@@ -70,9 +67,9 @@ def findRoadLane(img, starting_point, current_lane, current_curvature, counter, 
     #     print(np.absolute((current_fit[0]/lane_fit[0])-1))
 
     #CHECK IF The X2 COEFFICIENT IS SIMILAR TO LAST FRAME, IF NOT, USE LAST FRAME FIT
-    if (not current_fit.any()) or (np.absolute((current_fit[0]/lane_fit[0]) - 1) < 0.5) or (counter > 20):
+    if (current_fit[0] == None) or (np.absolute((current_fit[0]/lane_fit[0]) - 1) < 0.5) or (counter > 18):
         counter = 0
-        ploty = np.linspace(144, img.shape[0] - 1, img.shape[0])
+        ploty = np.linspace(100, img.shape[0] - 1, img.shape[0])
         lane = lane_fit[0] * ploty ** 2 + lane_fit[1] * ploty + lane_fit[2]
         lane = np.array([np.transpose(np.vstack([lane, ploty]))])
         lane = np.hstack(np.int_(lane))

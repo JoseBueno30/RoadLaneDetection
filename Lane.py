@@ -5,7 +5,7 @@ class Lane:
     def __init__(self, starting_point):
         self.starting_point = starting_point
         self.line = None
-        self.fit = np.array([])
+        self.fit = np.array([None])
         self.curvature = None
         self.sanity_counter = 0
 

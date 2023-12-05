@@ -46,7 +46,6 @@ def gaussian_smoothing(image, sigma, w_kernel):
 
 
 def binarize(img):
-
     binary = cv2.convertScaleAbs(img, alpha=1.1, beta=-80)
     binary = cv2.cvtColor(binary, cv2.COLOR_RGB2HSV)
     binary[:, :, 1] = np.zeros_like(binary[:, :, 1])
@@ -170,12 +169,12 @@ def binarize_kmeans(image, it):
 
 
 def Canny(img):
-    img = binarize(img)
     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     img = cv2.Canny(img, 100, 200, apertureSize=3)
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
+
     return img
 
 def bilateral_filter(img):
-    return cv2.bilateralFilter(img, 15, 75, 75)
+    return cv2.bilateralFilter(img, 3, 35, 35)
