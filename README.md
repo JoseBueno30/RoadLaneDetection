@@ -1,4 +1,4 @@
-# RoadLane-TrafficSignDetection
+# Road Lane Detection
 
 The goal of this project is to apply computer vision techniques in order to detect road lanes 
 in the context of self-driving vehicles and advanced driving assistance systems.
