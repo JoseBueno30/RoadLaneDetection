@@ -20,11 +20,16 @@ class PerspectiveTransform:
         IMAGE_H = 720
         IMAGE_W = 1280
 
-        self.src = np.float32([[280, IMAGE_H-55], [1000, IMAGE_H-55], [300, 470], [IMAGE_W-300, 470]])
-        self.dst = np.float32([[530, IMAGE_H], [760, IMAGE_H], [0, 0], [IMAGE_W, 0]])
+        #self.src = np.array([[280, IMAGE_H-55], [1000, IMAGE_H-55], [300, 450], [IMAGE_W-300, 450]]) #project_video
+        self.src = np.array([[280, IMAGE_H - 55],  ##bottom left
+                        [1000, IMAGE_H - 55],  # bottom rigt
+                        [300, 470],  # top left
+                        [IMAGE_W - 300, 470]])  # top right
 
-        self.TransformationMatrix = cv2.getPerspectiveTransform(self.src, self.dst)
-        self.TransformationMatrix_inv = cv2.getPerspectiveTransform(self.dst, self.src)
+        self.dst = np.array([[530, IMAGE_H], [760, IMAGE_H], [0, 0], [IMAGE_W, 0]])
+
+        self.TransformationMatrix, status = cv2.findHomography(self.src, self.dst)
+        self.TransformationMatrix_inv, status = cv2.findHomography(self.dst, self.src)
 
     def forward (self, img):
         transformed_img = np.copy(img)

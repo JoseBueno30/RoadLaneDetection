@@ -3,16 +3,7 @@ import cv2
 from numba import jit, cuda
 
 
-def histogram_equalization(img):
-    """ Applies histogram equalization to an image.
-            Args:
-                img: Input image
-            Returns:
-                equalized_histogram_img: Equalized histogram image
-    """
-    equalized_histogram_img = np.copy(img)
 
-    return equalized_histogram_img
 
 
 def gaussian_smoothing(image, sigma, w_kernel):
@@ -46,7 +37,8 @@ def gaussian_smoothing(image, sigma, w_kernel):
 
 
 def binarize(img):
-    binary = cv2.convertScaleAbs(img, alpha=1.1, beta=-80)
+    #SEPARATE FUNCTION
+    binary = cv2.convertScaleAbs(img, alpha=1.1, beta=-90)
     binary = cv2.cvtColor(binary, cv2.COLOR_RGB2HSV)
     binary[:, :, 1] = np.zeros_like(binary[:, :, 1])
     binary = cv2.cvtColor(binary, cv2.COLOR_HSV2RGB)
@@ -54,10 +46,7 @@ def binarize(img):
     ret, binary = cv2.threshold(binary[:,:,0], int(cv2.mean(binary[:,:,0])[0])+45, 255, cv2.THRESH_BINARY)
 
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
-    img_lab[:, :, 0] = histogram_equalization(img_lab[:, :, 0])
-    img_lab[:, :, 2] = histogram_equalization(img_lab[:, :, 2])
     img_hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
-    img_hls[:, :, 1] = histogram_equalization(img_hls[:, :, 1])
 
     binary_img = np.zeros_like(binary)
     binary_img[(img_lab[:, :, 2] < 115) | (binary > 1) ] = 255
@@ -73,7 +62,7 @@ def binarize(img):
     #lanes = np.zeros_like(lanes)
     #black = np.zeros_like(black)
     #yellow = np.zeros_like(yellow)
-    final_mask = np.zeros_like(img)
+    final_mask = np.zeros_like(binary)
     final_mask[(yellow > 1) | (lanes > 2) | (black > 3)] = 255
 
     small_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 7))
@@ -169,12 +158,12 @@ def binarize_kmeans(image, it):
 
 
 def Canny(img):
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    #img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     img = cv2.Canny(img, 100, 200, apertureSize=3)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    #img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
 
     return img
 
 def bilateral_filter(img):
-    return cv2.bilateralFilter(img, 3, 35, 35)
+    return cv2.bilateralFilter(img, 5, 25, 25)

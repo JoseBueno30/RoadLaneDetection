@@ -14,3 +14,6 @@ class Lane:
 
     def getFit(self):
         return self.line
+
+    def getPolynomial(self):
+        return self.fit

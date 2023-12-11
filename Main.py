@@ -10,14 +10,39 @@ import PerspectiveTransformation
 import PreProcessing
 
 
-def drawtext(frame):
-    cv2.putText(frame, "Curvature = {:.0f} m".format(min(left_line.curvature, right_line.curvature)), org=(10, 200),
-                fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale=2, color=(255, 255, 255), thickness=2)
+def drawCurvature(frame, left_aperture, right_aperture):
+    aperture = None
+    if abs(left_aperture) > abs(right_aperture):
+        aperture = left_aperture
+    else:
+        aperture = right_aperture
 
-def drawpos(frame, pos):
+    if abs(aperture) <= 0.00002:
+        direction = "Straight Line"
+        cv2.putText(frame, direction, org=(10, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1,
+                    color=(255, 255, 255), thickness=1)
+    elif aperture < 0:
+        direction = "Left Curve"
+        cv2.putText(frame, direction,
+                    org=(10, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(255, 255, 255), thickness=1)
+        cv2.putText(frame, "Curvature = {:.0f} m".format(min(left_line.curvature, right_line.curvature)),
+                    org=(10, 70), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(255, 255, 255), thickness=1)
+    else:
 
-    cv2.putText(frame, "POS = {:.2f} m".format(pos),
-                org=(10, 50), fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale=2, color=(255, 255, 255), thickness=2)
+        direction = "Right Curve"
+        cv2.putText(frame, direction,
+                    org=(10, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(255, 255, 255), thickness=1)
+        cv2.putText(frame, "Curvature = {:.0f} m".format(min(left_line.curvature, right_line.curvature)),
+                    org=(10, 70), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(255, 255, 255), thickness=1)
+
+def drawPosition(frame, pos):
+
+    cv2.putText(frame, "Distance to centre = {:.2f} m".format(pos),
+                org=(10, 115), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(255, 255, 255), thickness=1)
+
+def drawDisplay(frame):
+    cv2.rectangle(frame, (5, 5), (505, 130), (60, 60, 60), -1)
+
 
 
 def drawlane(lane_img):
@@ -25,10 +50,7 @@ def drawlane(lane_img):
 
 
 if __name__ == '__main__':
-    UNWARPED_SIZE = (1280, 720)
-    WARPED_SIZE = (600, 500)
     video = cv2.VideoCapture('video/project_video.mp4')
-    image = cv2.imread('video/frame134.jpg', -1)
     PerspectiveTransform = PerspectiveTransformation.PerspectiveTransform()
 
     if not video.isOpened():
@@ -38,7 +60,6 @@ if __name__ == '__main__':
     ret, initial_frame = video.read()
     cv2.imshow('tFrame', initial_frame)
     initial_frame = PerspectiveTransform.forward(initial_frame)
-
     left_starting_point, right_starting_point = LaneFinder.getStartingPoints(initial_frame)
 
     i=1
@@ -50,35 +71,24 @@ if __name__ == '__main__':
     while video.isOpened():
         ret, frame = video.read()
         if ret:
-            if i == 1:
-                i= 0
-                #im_out = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                cv2.imwrite("video/no_perspective.jpg", frame);
-
-            if i == 0:
-                start = time.time()
-                tframe = PerspectiveTransform.forward(frame)
-
-                left_line_thread = threading.Thread(target=left_line.find, args=(tframe,))
-                right_line_thread = threading.Thread(target=right_line.find, args=(tframe,))
-
-                left_line_thread.start()
-                right_line_thread.start()
-
-                left_line_thread.join()
-                right_line_thread.join()
-
-                left_line_fit = left_line.getFit()
-                right_line_fit = right_line.getFit()
+            start = time.time()
 
 
-                road = np.hstack(([left_line_fit], [np.flipud(right_line_fit)]))
+            tframe = PerspectiveTransform.forward(frame)
 
+            left_line_thread = threading.Thread(target=left_line.find, args=(tframe,))
+            right_line_thread = threading.Thread(target=right_line.find, args=(tframe,))
 
-                i=0;
-            else:
-                i+=1;
+            left_line_thread.start()
+            right_line_thread.start()
 
+            left_line_thread.join()
+            right_line_thread.join()
+
+            left_line_fit = left_line.getFit()
+            right_line_fit = right_line.getFit()
+
+            road = np.hstack(([left_line_fit], [np.flipud(right_line_fit)]))
 
             lane_img = np.zeros_like(frame)
 
@@ -87,37 +97,37 @@ if __name__ == '__main__':
 
             #print(left_line.getFit())
 
-            pos = (1280 // 2 - (right_line_fit[0][0] + left_line_fit[0][0]) // 2) * 3.7 / 700
+            position = (1280 // 2 - (right_line_fit[0][0] + left_line_fit[0][0]) // 2) * 3.7 / 700
+
+
+
+
 
             # Draw the lane onto the warped blank image
             laneThread = threading.Thread(target=drawlane, args=(lane_img,))
-            textThread = threading.Thread(target=drawtext, args=(frame,))
-            posThread = threading.Thread(target=drawpos, args=(frame, pos,))
+            displayThread = threading.Thread(target=drawDisplay, args=(frame,))
+            textThread = threading.Thread(target=drawCurvature, args=(frame, left_line.getPolynomial()[0], right_line.getPolynomial()[0],))
+            posThread = threading.Thread(target=drawPosition, args=(frame, position,))
 
             laneThread.start()
+            displayThread.start()
             textThread.start()
             posThread.start()
 
             laneThread.join()
+            displayThread.join()
             textThread.join()
             posThread.join()
 
             lane_img = PerspectiveTransform.backward(lane_img)
             frame = cv2.addWeighted(frame, 1, lane_img, 0.5, 0)
 
-            #frame = PerspectiveTransform.forward2(frame)
 
-            # cv2.putText(frame, "Curvature = {:.0f} m".format(min(left_line.curvature, right_line.curvature)), org=(10, 200), fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale=2, color=(255,255,255), thickness=2)
-            #
-            # pos = (1280//2 - (right_line.getFit()[0][0] + left_line.getFit()[0][0])//2) * 3.7/700
-            #
-            # cv2.putText(frame, "POS = {:.2f} m".format(pos),
-            #             org=(10, 50), fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale=2, color=(255, 255, 255),
-            #             thickness=2)
 
             cv2.imshow('tFrame', frame)
 
             print(time.time()-start)
+
 
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
