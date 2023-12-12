@@ -1,16 +1,16 @@
-# RoadLane-TrafficSignDetection
+# Road Lane Detection
 
 The goal of this project is to apply computer vision techniques in order to detect road lanes 
 in the context of self-driving vehicles and advanced driving assistance systems.
 
 ## Pipeline
 1. **Setup**
-1. **Perspective transform**
-2. **Sliding window fit**
-3. **Preprocessing and Thresholding**
-4. **Polynomial fit**
-5. **Data extraction and visualization**
-6. **Backwards perspective transform**
+2. **Perspective transform**
+3. **Sliding window fit**
+4. **Preprocessing and Thresholding**
+5. **Polynomial fit**
+6. **Data extraction and visualization**
+7. **Backwards perspective transform**
 
 ## 1. Setup
 First of all we need to make some preparations at the start of the program, we can compute some 
@@ -36,7 +36,7 @@ the image to the new perspective.
 
       TODO: IMAGE HERE
 
-## 2. Sliding Window Fit
+## 3. Sliding Window Fit
 Once we have the top-view image we can start the detection process. We will use the sliding window method,
 for that we determine the number of windows we will iterate over and set their width, with `N windows` each one will 
 have a height of `IMAGE_HEIGHT/N`. In this case we have a total of 10 windows so each one will be 72 pixels tall.
@@ -51,7 +51,7 @@ of the pixels found and recenter the next window there, this is done to account 
 When the window search is finished, and we have all the line pixels we can proceed to fit the polynomials, but first It's important
 to understand how the `PreProcesing.binarize()` method works as it is where there is more room to change and experimentation.
 
-## 3. Preprocessing and Thresholding
+## 4. Preprocessing and Thresholding
 
 ### 1. Bilateral Filtering
 First of all, we apply a bilateral filter to the window. This helps reduce noise and also smooths similar surfaces without
@@ -78,16 +78,16 @@ With this the binarizing process would be done. As said above here is where ther
 For example, I tried applying canny and sobel instead of binarizing but this was troublesome with shadows or vertical cracks on the road, so in the end
 I decided on the binarizing method and found this combination of thresholds that provides good results.
 
-## 4. Polynomial Fit
+## 5. Polynomial Fit
 Once we have binarized all the windows, we can fit a second grade polynomial curve to the stored points. In this step we perform a sanity check
 to see if the change of the curve is to abrupt compared with the last frame. If it is we use the curve found in the last frame instead. 
 All of this process is performed in `LaneFinder.findRoadLane()`
 
-## 5. Data Extraction and Visualization
+## 6. Data Extraction and Visualization
 Once we have the two lines we can calculate the curvature of each one and the distance between the center of the vehicle and the center of the road lane. 
 For the curvature we apply the curvature formula. We then use a couple different threads to show this data in the image and speed up the execution a bit. 
 
-## 6. Backwards Perspective Transform
+## 7. Backwards Perspective Transform
 Finally, we apply a backwards perspective transformation to the lane image and add the lines to the original frame.
 
-## 7. Resources
+## 8. Resources
