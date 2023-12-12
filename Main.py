@@ -16,8 +16,9 @@ def drawCurvature(frame, left_aperture, right_aperture):
         aperture = left_aperture
     else:
         aperture = right_aperture
+    print(abs(aperture))
 
-    if abs(aperture) <= 0.00002:
+    if abs(aperture) <= 0.00003:
         direction = "Straight Line"
         cv2.putText(frame, direction, org=(10, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1,
                     color=(255, 255, 255), thickness=1)
@@ -92,7 +93,7 @@ if __name__ == '__main__':
 
             lane_img = np.zeros_like(frame)
 
-            #lane_img = cv2.polylines(lane_img, [left_line.getFit()], False, (0, 155, 255), 10)
+            # lane_img = cv2.polylines(lane_img, [left_line.getFit()], False, (0, 155, 255), 10)
             #lane_img = cv2.polylines(lane_img, [right_line.getFit()], False, (0, 155, 255), 10)
 
             #print(left_line.getFit())
@@ -119,6 +120,10 @@ if __name__ == '__main__':
             textThread.join()
             posThread.join()
 
+            tframe = PreProcessing.binarize(tframe)
+            #frame = PerspectiveTransform.backward(tframe)
+            #frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+
             lane_img = PerspectiveTransform.backward(lane_img)
             frame = cv2.addWeighted(frame, 1, lane_img, 0.5, 0)
 
@@ -126,7 +131,7 @@ if __name__ == '__main__':
 
             cv2.imshow('tFrame', frame)
 
-            print(time.time()-start)
+            #print(time.time()-start)
 
 
             if cv2.waitKey(25) & 0xFF == ord('q'):

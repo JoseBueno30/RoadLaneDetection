@@ -66,11 +66,9 @@ def binarize(img):
     final_mask[(yellow > 1) | (lanes > 2) | (black > 3)] = 255
 
     small_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 7))
-    final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_ERODE, small_kernel, 10)
-    final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_ERODE, small_kernel, 10)
+    final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_ERODE, small_kernel, iterations=2)
     small_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_ERODE, small_kernel, 10)
-
 
     small_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 31))
     final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_DILATE, small_kernel)

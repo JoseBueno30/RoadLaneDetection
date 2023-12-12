@@ -20,11 +20,8 @@ class PerspectiveTransform:
         IMAGE_H = 720
         IMAGE_W = 1280
 
-        #self.src = np.array([[280, IMAGE_H-55], [1000, IMAGE_H-55], [300, 450], [IMAGE_W-300, 450]]) #project_video
-        self.src = np.array([[280, IMAGE_H - 55],  ##bottom left
-                        [1000, IMAGE_H - 55],  # bottom rigt
-                        [300, 470],  # top left
-                        [IMAGE_W - 300, 470]])  # top right
+        self.src = np.array([[280, IMAGE_H-55], [1000, IMAGE_H-55], [300, 460], [IMAGE_W-300, 460]]) #project_video
+        #self.src = np.array([[280, IMAGE_H-55], [1000, IMAGE_H-55], [300, 480], [IMAGE_W-300, 480]]) #challenge_video
 
         self.dst = np.array([[530, IMAGE_H], [760, IMAGE_H], [0, 0], [IMAGE_W, 0]])
 
