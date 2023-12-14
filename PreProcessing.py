@@ -49,7 +49,7 @@ def binarize(img):
     img_hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
 
     binary_img = np.zeros_like(binary)
-    binary_img[(img_lab[:, :, 2] < 115) | (binary > 1) ] = 255
+    binary_img[(img_lab[:, :, 2] > 155) | (binary > 1) ] = 255
 
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 7))
@@ -74,31 +74,6 @@ def binarize(img):
     final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_DILATE, small_kernel)
 
     return final_mask
-
-def Sobel (img):
-    kernel_h = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]]) * 1 / 4
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    img = cv2.filter2D(img,cv2.CV_8U,kernel_h)
-
-    # small_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 7))
-    # img = cv2.morphologyEx(img, cv2.MORPH_ERODE, small_kernel, 10)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    img = binarize(img)
-
-
-    #img = binarize(img)
-
-    #binary = cv2.convertScaleAbs(img, alpha=1.1, beta=-80)
-    # binary = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    # binary[:, :, 1] = np.zeros_like(binary[:, :, 1])
-    # #binary[:, :, 2] = np.zeros_like(binary[:, :, 2])
-    # binary = cv2.cvtColor(binary, cv2.COLOR_HSV2RGB)
-    #
-    # ret, binary[:, :, 0] = cv2.threshold(binary[:, :, 0], int(cv2.mean(binary[:, :, 0])[0]) + 45, 255, cv2.THRESH_BINARY)
-
-
-    return img
 
 
 def binarize_kmeans(image, it):
