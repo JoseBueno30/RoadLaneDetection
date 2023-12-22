@@ -3,6 +3,13 @@
 The goal of this project is to apply computer vision techniques in order to detect road lanes 
 in the context of self-driving vehicles and advanced driving assistance systems.
 
+## Installation
+1. Create a python package.
+2. Install numpy and opencv.
+3. In main.py use project_video.mp4 or challenge_video.mp4
+4. In case we want to use a different camera setup some calibrations are needed.
+5. Run main.py
+
 ## Pipeline
 1. **Setup**
 2. **Perspective transform**
@@ -34,7 +41,7 @@ and 4 others point that make a rectangle, and we get the transformation matrix t
 with the method `cv2.findHomography()`, then we can apply `cv2.warpPerspective()` to transform 
 the image to the new perspective.
 
-      TODO: IMAGE HERE
+![Image](images/perspective%20transform.jpg)
 
 ## 3. Sliding Window Fit
 Once we have the top-view image we can start the detection process. We will use the sliding window method,
@@ -50,6 +57,10 @@ of the pixels found and recenter the next window there, this is done to account 
 
 When the window search is finished, and we have all the line pixels we can proceed to fit the polynomials, but first It's important
 to understand how the `PreProcesing.binarize()` method works as it is where there is more room to change and experimentation.
+
+### Visualization
+This is not generated in this software, it is just a visualization of the process.
+![Image](images/sliding_window_fit2.jpg)
 
 ## 4. Preprocessing and Thresholding
 
@@ -69,10 +80,12 @@ the possibility of the lines being white or yellow, so the process must be robus
 First, we threshold the brightness and contrast
 corrected image and combine it with the thresholded B chanel of the original window image in LAB colorspace. We also apply a threshold
 L channel of the LAB colorspace and the L channel from the HLS colorspace.
+![Image](images/binarizing_proccess1.png)
 
 Then we apply some morphological transformations (TOPHAT) to the three versions in order to reduce very big concentration of pixels that are bigger than 
 the lines should be from the window. After that we can finally combine the three thresholded images and apply erosion and dilation to remove noise and 
 possible false positives from the window.
+![Image](images/binarizing_proccess2.png)
 
 With this the binarizing process would be done. As said above here is where there is more room of improvement I think, as more methods can be tried. 
 For example, I tried applying canny and sobel instead of binarizing but this was troublesome with shadows or vertical cracks on the road, so in the end
@@ -80,14 +93,20 @@ I decided on the binarizing method and found this combination of thresholds that
 
 ## 5. Polynomial Fit
 Once we have binarized all the windows, we can fit a second grade polynomial curve to the stored points. In this step we perform a sanity check
-to see if the change of the curve is to abrupt compared with the last frame. If it is we use the curve found in the last frame instead. 
+to see if the change of the curve is to abrupt compared with the last frame. We check the coefficient of x^2 in both curves as we don't expect much
+change. If there is an abrupt change then we use the curve found in the last frame instead. 
 All of this process is performed in `LaneFinder.findRoadLane()`
 
 ## 6. Data Extraction and Visualization
 Once we have the two lines we can calculate the curvature of each one and the distance between the center of the vehicle and the center of the road lane. 
-For the curvature we apply the curvature formula. We then use a couple different threads to show this data in the image and speed up the execution a bit. 
+For the curvature we apply the curvature formula. We then use a couple different threads to show this data in the image and speed up the execution a bit.
+
+![Image](images/data_extraction1.jpg)
+This is actually processed at the same time as the lane backwards perspective transform and visualization.
+
+We could use this data for driving assistance or for decision taking in self-driving. For example in this program
+if the car gets to far away from the center the color of the found lane changes from green to red.
 
 ## 7. Backwards Perspective Transform
 Finally, we apply a backwards perspective transformation to the lane image and add the lines to the original frame.
-
-## 8. Resources
+![Image](images/data_extraction3.jpg)
